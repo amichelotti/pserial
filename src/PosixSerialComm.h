@@ -44,7 +44,7 @@ namespace common {
             int write_buffer_size;
             int read_buffer_size;
 	    int err_read,err_write;
-            pthread_mutex_t write_mutex,read_mutex;
+            pthread_mutex_t write_mutex,read_mutex,read_done;
             pthread_cond_t write_cond,write_full_cond,read_cond,read_full_cond;
             
             static void *write_thread(void *);
