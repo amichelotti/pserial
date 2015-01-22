@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
   int parity=0;
   int stop=1;
   int bits=8;
-  while((opt=getopt(argc,argv,"d:b:p:s:w:"))!=-1){
+  bool hw =false;
+  while((opt=getopt(argc,argv,"d:b:p:s:w:f"))!=-1){
     switch(opt){
     case 'd':
       dev = optarg;
@@ -43,8 +44,13 @@ int main(int argc, char *argv[])
     case 'w':
       bits= atoi(optarg);
       break;
+    case 'f':
+      hw= true;
+      break;
+      
     default:
-      printf("Usage is: %s <-d serial dev> [-b baudrate] [-p parity] [-s stop] [-w bits]\n",argv[0]);
+      printf("Usage is: %s <-d serial dev> [-b baudrate] [-p parity] [-s stop] [-w bits] [-f]\n-f: enable control flow HW\n",argv[0]);
+
       return 0;
     }
 
@@ -55,15 +61,16 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  printf("* dev: %s baudrate:%d parity:%d bits:%d stop:%d\n",dev,baudrate,parity,bits,stop);
-  int comm = popen_serial(bufsize,dev,baudrate,parity,bits,stop);
+  printf("* dev: %s baudrate:%d parity:%d bits:%d stop:%d control flow hw:%s\n",dev,baudrate,parity,bits,stop,hw?"NO":"YES");
+  
+  int comm = popen_serial(bufsize,dev,baudrate,parity,bits,stop,hw);
   //  PosixSerialComm* comm=new PosixSerialComm(dev,atoi(baudrate.c_str()),atoi(parity.c_str()),atoi(bits.c_str()),atoi(stop.c_str()));
   if(comm>=0){
     char buffer[BUFFER_SIZE];
 
     while(1){
       int timeout=0;
-      int bytes=byte_available_read_serial(comm);
+      int bytes=pread_serial_count(comm);
       if(bytes<=0){
 	usleep(1);
 	continue;

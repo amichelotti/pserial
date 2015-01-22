@@ -59,9 +59,9 @@ void* write_th(void*arg){
       return 0;
     }
 
-    while(counter>0)
+    /*    while(counter>0)
       usleep(100);
-
+    */
     //    sleep(1);
     
     if(args->errors){
@@ -84,11 +84,6 @@ void* read_th(void*arg){
 
   printf("Read thread created\n");
   for(int cnt=start_size/4 ;cnt<(start_size+size);cnt++){
-    /*  while((aval=comm->byte_available_read())<=0){
-      DPRINT("%d] wating bytes for read rx %d\n",cnt,trx);
-      usleep(100000);
-    }
-    */
     DPRINT("%d] reading %d bytes at @x%x\n",cnt ,cnt*4, (char*)rptr + start_size);
     ret=  LVread_serial(comm,(char*)rptr + start_size,cnt*4,-1,&timeo);
     printf("%d] READ %d bytes\n",cnt,ret);
@@ -101,7 +96,7 @@ void* read_th(void*arg){
       return 0;
     }
     
-    printf("[%d] testing %d bytes data  \n",cnt,cnt*4);
+    DPRINT("[%d] testing %d bytes data  \n",cnt,cnt*4);
     for(int cntt=start_size;cntt<cnt;cntt++){
       if(rptr[cntt]!=((cntt&0xffff) | (cnt<<16))){
 	printf("## Test 1 data error [%d] value %d(%d,%d) expected %d(%d,%d)\n",cntt,rptr[cntt],rptr[cntt]>>16,rptr[cntt]&0xffff,(cntt | (cnt<<16)),cnt,cntt);
@@ -163,7 +158,8 @@ int main(int argc, char *argv[])
   int parity=0;
   int stop=1;
   int bits=8;
-  while((opt=getopt(argc,argv,"d:b:p:s:w:c:a:"))!=-1){
+  bool hw=false;
+  while((opt=getopt(argc,argv,"d:b:p:s:w:c:a:f"))!=-1){
     switch(opt){
     case 'c':
       cycles = atoi(optarg);
@@ -187,8 +183,12 @@ int main(int argc, char *argv[])
     case 'w':
       bits= atoi(optarg);
       break;
+    case 'f':
+      hw= true;
+      break;
+      
     default:
-      printf("Usage is: %s <-d serial dev> [-b baudrate] [-p parity] [-s stop] [-w bits] [-c <test cycles>] [-a <starting size of packets>]\n",argv[0]);
+      printf("Usage is: %s <-d serial dev> [-b baudrate] [-p parity] [-s stop] [-w bits] [-c <test cycles>] [-a <starting size of packets>] [-f]\n-f: enable control flow HW\n",argv[0]);
       return 0;
     }
 
@@ -199,11 +199,11 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  printf("* dev: %s baudrate:%d parity:%d bits:%d stop:%d\n",dev,baudrate,parity,bits,stop);
+  printf("* dev: %s baudrate:%d parity:%d bits:%d stop:%d control flow hw:%s\n",dev,baudrate,parity,bits,stop,hw?"NO":"YES");
 
 
 
-  int comm = popen_serial(bufsize,dev,baudrate,parity,bits,stop);
+  int comm = popen_serial(bufsize,dev,baudrate,parity,bits,stop,hw);
   if(comm<0){
     printf("## error during initialization\n");
     return -1;

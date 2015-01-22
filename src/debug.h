@@ -29,8 +29,8 @@
 #define DPRINT(str,ARGS...) {char dbg[256]; snprintf(dbg,sizeof(dbg),str, ##ARGS);LDBG_<<"["<<__FUNCTION__<<"]"<<" "<< dbg;}
 #define DERR(str,ARGS...)  {char dbg[256]; snprintf(dbg,sizeof(dbg),str, ##ARGS);LERR_<<"["<<__FUNCTION__<<"]"<<"#### "<< dbg;}
 #else
-#define DPRINT(str,ARGS...) printf("[%.12Lu,x%lx] \033[38;5;148m%s\033[39m :" str,(unsigned long long)::common::debug::getUsTime(),(unsigned long)pthread_self(), __FUNCTION__, ##ARGS)
-#define DERR(str,ARGS...) printf("# [%.12Lu,x%lx] \033[38;5;148m%s\033[39m :" str,(unsigned long long)::common::debug::getUsTime(),(unsigned long)pthread_self(),__FUNCTION__,##ARGS)
+#define DPRINT(str,ARGS...) {pthread_mutex_t pmutex;pthread_mutex_init(&pmutex,NULL);pthread_mutex_lock(&pmutex);printf("[%.12Lu,x%lx] \033[38;5;148m%s\033[39m :" str,(unsigned long long)::common::debug::getUsTime(),(unsigned long)pthread_self(), __FUNCTION__, ##ARGS);pthread_mutex_unlock(&pmutex);}
+#define DERR(str,ARGS...) {pthread_mutex_t pmutex;pthread_mutex_init(&pmutex,NULL);pthread_mutex_lock(&pmutex);printf("# [%.12Lu,x%lx] \033[38;5;148m%s\033[39m :" str,(unsigned long long)::common::debug::getUsTime(),(unsigned long)pthread_self(),__FUNCTION__,##ARGS);pthread_mutex_unlock(&pmutex);}
 #endif
 #else
 #define DPRINT(str,ARGS...) 
